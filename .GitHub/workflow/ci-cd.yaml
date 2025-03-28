@@ -1,0 +1,33 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+    - name: Terraform Apply
+      run: |
+        cd terraform/
+        terraform init
+        terraform apply -auto-approve
+
+    - name: Build and Push Docker Images
+      run: |
+        docker build -t YOUR_ACR.azurecr.io/backend:latest ./backend
+        docker push YOUR_ACR.azurecr.io/backend:latest
+        docker build -t YOUR_ACR.azurecr.io/frontend:latest ./frontend
+        docker push YOUR_ACR.azurecr.io/frontend:latest
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/
