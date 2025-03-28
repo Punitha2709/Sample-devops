@@ -1,0 +1,3 @@
+CREATE DATABASE devopsdb;
+CREATE USER devops WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE devopsdb TO devops;
